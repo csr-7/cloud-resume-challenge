@@ -1,5 +1,5 @@
 body {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Arial';
   background-color: #f7f9fc;
   color: #333;
   margin: 0;
@@ -16,48 +16,68 @@ body {
 }
 
 h1 {
-  font-size: 32px;
+  font-size: 24px;
   margin-bottom: 10px;
   text-align: center;
 }
 
 h2 {
   border-bottom: 2px solid #000000;
-  padding-bottom: 5px;
-  margin-top: 40px;
-  font-size: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 18px;
   text-transform: uppercase;
 }
 
 h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
+}
+
+h4 {
+    margin: 0;
+    font-weight: lighter;
+    font-size: 15px;
+}
+
+span {
+    font-size: 15px;
 }
 
 .job-header {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
   font-weight: bold;
-  padding-bottom: .5%;
+}
+
+.job-subheader {
+  display: flex;
+  font-style: italic;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 14px;
 }
 
 .cert-style {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
-  font-style: italic;
-  padding-bottom: .5%;
 }
 
 ul {
   padding-left: 20px;
-  margin-top: 10px;
+  font-size: 14px;
+  margin-top: 5px;
 }
 
 a {
   color: #0073e6;
   text-decoration: none;
+}
+
+p {
+    font-size: small;
+
 }
 
 .date-range {
