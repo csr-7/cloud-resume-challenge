@@ -7,30 +7,63 @@ async function incrementCounter() {
     try {
         console.log('Incrementing counter via CountAPI...');
         
-        // Make HTTP request to CountAPI to increment
-        const response = await fetch('https://api.countapi.xyz/hit/resume.csruiz.com/visits');
+        // Use your actual domain for CountAPI namespace
+        const apiUrl = 'https://api.countapi.xyz/hit/resume.csruiz.com/visits';
         
-        // Check if request was successful
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
         }
         
-        // Parse the JSON response
         const data = await response.json();
         console.log('CountAPI response:', data);
+        
+        // Validate the response structure
+        if (!data || typeof data.value === 'undefined') {
+            throw new Error('Invalid response format from CountAPI');
+        }
         
         // Update our local tracking
         currentCount = data.value;
         
         // Update the display
-        document.getElementById('visit-count').textContent = currentCount;
-        document.getElementById('status').textContent = 'Connected to CountAPI';
+        document.getElementById('visit-count').textContent = currentCount.toLocaleString();
+        document.getElementById('status').textContent = 'Live counter active';
         
         return currentCount;
         
     } catch (error) {
         console.error('Failed to increment counter:', error);
-        document.getElementById('status').textContent = 'Error: Could not connect';
+        
+        // Check if we're in a local file context
+        if (window.location.protocol === 'file:') {
+            document.getElementById('visit-count').textContent = 'Local Preview';
+            document.getElementById('status').textContent = 'Counter will work when deployed';
+            return 0;
+        }
+        
+        // For production errors, show a fallback
+        document.getElementById('visit-count').textContent = 'Unavailable';
+        document.getElementById('status').textContent = 'Counter service temporarily unavailable';
+        
+        // Log detailed error for debugging
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            url: window.location.href,
+            userAgent: navigator.userAgent
+        });
+        
         throw error;
     }
 }

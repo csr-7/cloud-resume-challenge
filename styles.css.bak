@@ -1,5 +1,5 @@
 body {
-  font-family: 'Arial';
+  font-family: Arial, sans-serif;
   background-color: #f7f9fc;
   color: #333;
   margin: 0;
@@ -16,32 +16,37 @@ body {
 }
 
 h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 28px;
   text-align: center;
+  margin-bottom: 5px;
+}
+
+.contact-info {
+  text-align: center;
+  margin-top: 0;
+  font-size: 14px;
 }
 
 h2 {
-  border-bottom: 2px solid #000000;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  border-bottom: 2px solid #000;
   font-size: 18px;
+  margin: 30px 0 10px;
   text-transform: uppercase;
 }
 
 h3 {
+  font-size: 16px;
   margin: 0;
-  font-size: 15px;
 }
 
 h4 {
-    margin: 0;
-    font-weight: lighter;
-    font-size: 15px;
+  font-size: 15px;
+  font-weight: normal;
+  margin: 0;
 }
 
 span {
-    font-size: 15px;
+  font-size: 14px;
 }
 
 .job-header {
@@ -52,8 +57,8 @@ span {
 
 .job-subheader {
   display: flex;
-  font-style: italic;
   justify-content: space-between;
+  font-style: italic;
   margin-top: 5px;
   font-size: 14px;
 }
@@ -64,17 +69,80 @@ ul {
   margin-top: 5px;
 }
 
+.section {
+  margin-top: 30px;
+}
+
 a {
   color: #0073e6;
   text-decoration: none;
 }
 
-.section {
-  margin-top: 30px;
+p {
+  font-size: 14px;
 }
 
-.cert-style{
-  display: flex;
-  margin-top: 0px;
-  font-size: 14px;
+footer {
+  background-color: #f5f5f5;
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+}
+
+.visit-counter {
+  margin-top: 10px;
+}
+  
+#visit-count {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Printable css styling */
+@media print {
+  body {
+    background: none;
+    color: #000;
+    padding: 0;
+    margin: 0;
+  }
+
+  .resume-container {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0.5in;
+    margin: 0;
+    width: auto;
+  }
+
+  a {
+    color: black;
+    text-decoration: none;
+  }
+
+  .section {
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3, h4 {
+    color: #000;
+  }
+
+  /* Optional: Remove links (e.g., mailto:) from print output */
+  a[href^="mailto:"]:after {
+    content: "";
+  }
+
+  /* Optional: Adjust font sizes for print clarity */
+  h1 {
+    font-size: 24pt;
+  }
+
+  h2 {
+    font-size: 14pt;
+  }
+
+  h3, h4, span, p, li {
+    font-size: 11pt;
+  }
 }
