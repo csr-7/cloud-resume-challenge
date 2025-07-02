@@ -1,42 +1,71 @@
 import boto3
 import json
+from botocore.exceptions import ClientError
 
 print('Loading function')
-dynamo = boto3.client('dynamodb')
 
-
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-    }
-
+# Use resource instead of client for easier operations
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('resume-views') 
 
 def lambda_handler(event, context):
-    '''Demonstrates a simple HTTP endpoint using API Gateway. You have full
-    access to the request and response payload, including headers and
-    status code.
-
-    To scan a DynamoDB table, make a GET request with the TableName as a
-    query string parameter. To put, update, or delete an item, make a POST,
-    PUT, or DELETE request respectively, passing in the payload to the
-    DynamoDB API as a JSON body.
-    '''
-    #print("Received event: " + json.dumps(event, indent=2))
-
-    operations = {
-        'DELETE': lambda dynamo, x: dynamo.delete_item(**x),
-        'GET': lambda dynamo, x: dynamo.scan(**x),
-        'POST': lambda dynamo, x: dynamo.put_item(**x),
-        'PUT': lambda dynamo, x: dynamo.update_item(**x),
-    }
-
-    operation = event['httpMethod']
-    if operation in operations:
-        payload = event['queryStringParameters'] if operation == 'GET' else json.loads(event['body'])
-        return respond(None, operations[operation](dynamo, payload))
-    else:
-        return respond(ValueError('Unsupported method "{}"'.format(operation)))
+    """
+    Simple visitor counter that increments count in DynamoDB
+    and returns the current count
+    """
+    
+    try:
+        # Update the visitor count (increment by 1)
+        response = table.update_item(
+            Key={
+                'id': 'visitors' 
+            },
+            UpdateExpression='ADD count :val',
+            ExpressionAttributeValues={
+                ':val': 1
+            },
+            ReturnValues='UPDATED_NEW'
+        )
+        
+        # Get the updated count
+        visitor_count = int(response['Attributes']['count'])
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'resume.csruiz.com',
+                'Access-Control-Allow-Methods': 'GET',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': json.dumps({
+                'count': visitor_count
+            })
+        }
+        
+    except ClientError as e:
+        print(f"Error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'resume.csruiz.com',
+            },
+            'body': json.dumps({
+                'error': 'Could not update visitor count',
+                'message': str(e)
+            })
+        }
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'resume.csruiz.com',
+            },
+            'body': json.dumps({
+                'error': 'Internal server error',
+                'message': str(e)
+            })
+        }
