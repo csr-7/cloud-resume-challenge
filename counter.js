@@ -1,4 +1,4 @@
-const API_URL = 'wss://ixdcm5bwte.execute-api.us-west-1.amazonaws.com/crc/';
+const API_URL = 'https://u2ekr4m9dl.execute-api.us-west-1.amazonaws.com/crc';
 
         async function updateVisitorCount() {
             try {
