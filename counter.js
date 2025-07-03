@@ -1,33 +1,27 @@
-const API_URL = 'https://on94atu27h.execute-api.us-west-1.amazonaws.com/crc/{visitor-count+}';
-
-        async function updateVisitorCount() {
-            try {
-                console.log('Fetching visitor count...');
-                
-                const response = await fetch(API_URL, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Visitor count data:', data);
-                
-                // Update the display
-                document.getElementById('visitor-count').textContent = data.count;
-                
-            } catch (error) {
-                console.error('Error fetching visitor count:', error);
-                document.getElementById('visitor-count').textContent = 'Error loading count';
+async function updateVisitorCount() {
+    console.log('Fetching visitor count...');
+    try {
+        const response = await fetch('https://on94atu27h.execute-api.us-west-1.amazonaws.com/crc/visitor-count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             }
-        }
-
-        // Update count when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            updateVisitorCount();
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Visitor count:', data.visitor_count);
+        
+        // Update your page with the count
+        document.getElementById('visitor-count').textContent = data.visitor_count;
+        
+    } catch (error) {
+        console.error('Error fetching visitor count:', error);
+    }
+}
+
+// Call when page loads
+window.addEventListener('load', updateVisitorCount);
