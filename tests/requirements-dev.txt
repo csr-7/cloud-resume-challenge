@@ -1,3 +1,4 @@
+# installing pip requirements to python environment
 pytest
 pytest-mock
 moto
