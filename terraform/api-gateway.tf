@@ -71,12 +71,27 @@ resource "aws_api_gateway_method" "options_method" {
 resource "aws_api_gateway_integration" "options_integration" {
   rest_api_id             = aws_api_gateway_rest_api.crc_api_tf.id
   resource_id             = aws_api_gateway_resource.visitor_count.id
-  http_method             = "OPTIONS"
+  http_method             = aws_api_gateway_method.options_method.http_method
   type                    = "MOCK"
   request_templates       = {
-    "application/json" = "{\n  \"statusCode\": 200\n}"
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
   }
   integration_http_method = "POST"
+}
+
+# Method Response for OPTIONS (must come before integration response)
+resource "aws_api_gateway_method_response" "options_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
+  resource_id = aws_api_gateway_resource.visitor_count.id
+  http_method = aws_api_gateway_method.options_method.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
 }
 
 # Integration Response for OPTIONS
@@ -90,19 +105,9 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
-}
-
-# Method Response for OPTIONS
-resource "aws_api_gateway_method_response" "options_method_response" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
-  resource_id = aws_api_gateway_resource.visitor_count.id
-  http_method = aws_api_gateway_method.options_method.http_method
-  status_code = "200"
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true,
-    "method.response.header.Access-Control-Allow-Methods" = true,
-    "method.response.header.Access-Control-Allow-Origin"  = true
-  }
+  
+  # Explicit dependency to ensure integration is created first
+  depends_on = [aws_api_gateway_integration.options_integration]
 }
 
 # Deployment
@@ -110,14 +115,21 @@ resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.post_integration,
     aws_api_gateway_integration.get_integration,
-    aws_api_gateway_integration.options_integration
+    aws_api_gateway_integration.options_integration,
+    aws_api_gateway_integration_response.options_integration_response
   ]
   rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
-  stage_name  = "dev"
 }
 
-# Output the API Gateway URL
+# Separate stage resource
+resource "aws_api_gateway_stage" "crc-tf" {
+  deployment_id = aws_api_gateway_deployment.deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.crc_api_tf.id
+  stage_name    = "crc-tf"
+}
+
+# Updated output
 output "api_gateway_url" {
-  value = "${aws_api_gateway_deployment.deployment.invoke_url}/visitor-count"
+  value       = "https://${aws_api_gateway_rest_api.crc_api_tf.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.crc-tf.stage_name}/visitor-count"
   description = "URL for the visitor count API endpoint"
 }
