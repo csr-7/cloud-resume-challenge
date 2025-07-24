@@ -122,7 +122,7 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 # Separate stage resource
-resource "aws_api_gateway_stage" "crc-tf" {
+resource "aws_api_gateway_stage" "crc_tf" {
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = aws_api_gateway_rest_api.crc_api_tf.id
   stage_name    = "crc-tf"
@@ -130,6 +130,6 @@ resource "aws_api_gateway_stage" "crc-tf" {
 
 # Updated output
 output "api_gateway_url" {
-  value       = "https://${aws_api_gateway_rest_api.crc_api_tf.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.crc-tf.stage_name}/visitor-count"
+  value       = "https://${aws_api_gateway_rest_api.crc_api_tf.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.crc_tf.stage_name}/visitor-count"
   description = "URL for the visitor count API endpoint"
 }
