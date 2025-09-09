@@ -81,6 +81,27 @@ resource "aws_api_gateway_integration" "options_integration" {
   integration_http_method = "POST"
 }
 
+# Method Response for GET
+resource "aws_api_gateway_method_response" "get_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
+  resource_id = aws_api_gateway_resource.visitor_count.id
+  http_method = aws_api_gateway_method.get_method.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+#Method Response for Post
+resource "aws_api_gateway_method_response" "post_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
+  resource_id = aws_api_gateway_resource.visitor_count.id
+  http_method = aws_api_gateway_method.post_method.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
 # Method Response for OPTIONS (must come before integration response)
 resource "aws_api_gateway_method_response" "options_method_response" {
   rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id

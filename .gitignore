@@ -26,8 +26,12 @@ Thumbs.db
 # Terraform
 *.tfstate
 *.tfstate.backup
+*.tfstate.*.backup
 .terraform/
 .terraform.lock.hcl
 
 # AWS
 .aws/
+
+# Lambda deployment packages
+*.zip
