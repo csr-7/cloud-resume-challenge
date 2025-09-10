@@ -55,7 +55,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   is_ipv6_enabled     = false
   default_root_object = "resume.html"
 
-  aliases = ["resume-tf.csruiz.com"]
+  #aliases = ["resume-tf.csruiz.com"]
+  aliases = ["resume.csruiz.com"]
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]

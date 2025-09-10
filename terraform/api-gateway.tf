@@ -22,13 +22,6 @@ resource "aws_api_gateway_method" "post_method" {
   authorization = "NONE"
 }
 
-# GET Method
-resource "aws_api_gateway_method" "get_method" {
-  rest_api_id   = aws_api_gateway_rest_api.crc_api_tf.id
-  resource_id   = aws_api_gateway_resource.visitor_count.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
 
 # POST Integration
 resource "aws_api_gateway_integration" "post_integration" {
@@ -40,15 +33,6 @@ resource "aws_api_gateway_integration" "post_integration" {
   uri                     = aws_lambda_function.python_lambda_function.invoke_arn
 }
 
-# GET Integration
-resource "aws_api_gateway_integration" "get_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.crc_api_tf.id
-  resource_id             = aws_api_gateway_resource.visitor_count.id
-  http_method             = aws_api_gateway_method.get_method.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.python_lambda_function.invoke_arn
-}
 
 # Lambda Permission
 resource "aws_lambda_permission" "api_gw" {
@@ -81,16 +65,6 @@ resource "aws_api_gateway_integration" "options_integration" {
   integration_http_method = "POST"
 }
 
-# Method Response for GET
-resource "aws_api_gateway_method_response" "get_method_response" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
-  resource_id = aws_api_gateway_resource.visitor_count.id
-  http_method = aws_api_gateway_method.get_method.http_method
-  status_code = "200"
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin" = true
-  }
-}
 
 #Method Response for Post
 resource "aws_api_gateway_method_response" "post_method_response" {
@@ -123,7 +97,7 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
   status_code = "200"
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
   
@@ -135,11 +109,14 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
 resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.post_integration,
-    aws_api_gateway_integration.get_integration,
     aws_api_gateway_integration.options_integration,
     aws_api_gateway_integration_response.options_integration_response
   ]
   rest_api_id = aws_api_gateway_rest_api.crc_api_tf.id
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Separate stage resource
