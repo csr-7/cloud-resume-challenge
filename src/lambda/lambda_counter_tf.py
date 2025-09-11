@@ -10,7 +10,6 @@ def lambda_handler(event, context):
     # Allowed origins
     allowed_origins = [
         'https://resume.csruiz.com',
-        'https://resume-tf.csruiz.com',
         'https://d1rkalisahkhhn.cloudfront.net' #OLD: 'https://d237sr1p0h65er.cloudfront.net'
     ]
     
