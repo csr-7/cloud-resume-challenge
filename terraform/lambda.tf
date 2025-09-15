@@ -21,3 +21,13 @@ resource "aws_lambda_function" "python_lambda_function" {
     }
 }
 
+resource "aws_lambda_function" "counter" {
+  filename         = "../lambda_function.zip"
+  function_name    = "resume-counter"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lambda_counter.tf.lambda_handler"  # adjust based on your function structure
+  runtime         = "python3.9"
+  
+  # This ensures Terraform redeploys when the zip file changes
+  source_code_hash = filebase64sha256("../lambda_function.zip")
+}

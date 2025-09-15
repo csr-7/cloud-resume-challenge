@@ -1,0 +1,102 @@
+name: Test and Deploy Cloud Resume
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - '**.tf'
+      - '**.tfvars'
+      - 'lambda/**'
+      - 'tests/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install test dependencies
+        pip install pytest boto3 moto
+
+    - name: Run Python tests
+      run: |
+        cd tests
+        python -m pytest . -v
+        cd ..
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # adjust to your region
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ~1.5
+
+    - name: Create Lambda deployment packages
+      run: |
+        # Package the lambda function
+        cd lambda
+        zip -r ../lambda_function.zip lambda_counter.tf.py
+        cd ..
+        
+        # If you have other Lambda functions, package them too
+        # cd some_other_lambda_dir
+        # zip -r ../other_function.zip .
+        # cd ..
+
+    - name: Terraform Format Check
+      run: |
+        cd terraform
+        terraform fmt -check
+        cd ..
+
+    - name: Terraform Init
+      run: |
+        cd terraform
+        terraform init
+        cd ..
+
+    - name: Terraform Validate
+      run: |
+        cd terraform
+        terraform validate
+        cd ..
+
+    - name: Terraform Plan
+      run: |
+        cd terraform
+        terraform plan -out=tfplan
+        cd ..
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        cd terraform
+        terraform apply -auto-approve tfplan
+        cd ..
+
+    - name: Clean up
+      if: always()
+      run: |
+        rm -f lambda_function.zip
+        rm -f terraform/tfplan
