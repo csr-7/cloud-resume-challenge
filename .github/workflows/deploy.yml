@@ -8,7 +8,7 @@ on:
       - '**.py'
       - '**.tf'
       - '**.tfvars'
-      - 'lambda/**'
+      - 'src/lambda/**'
       - 'tests/**'
   pull_request:
     branches:
@@ -29,7 +29,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
 
     - name: Install Python dependencies
       run: |
@@ -40,8 +40,10 @@ jobs:
 
     - name: Run Python tests
       run: |
-        # Add lambda directory to Python path
-        export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}/lambda"
+        # Add lambda directory to Python path and create __init__.py files
+        touch src/lambda/__init__.py
+        touch tests/__init__.py
+        export PYTHONPATH="${PYTHONPATH}:${PWD}/src/lambda:${PWD}"
         cd tests
         python -m pytest . -v
         cd ..
@@ -51,24 +53,13 @@ jobs:
       with:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
         role-session-name: GitHubActions
-        aws-region: us-east-1  # adjust to your region
+        aws-region: us-west-1
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ~1.5
 
-    - name: Create Lambda deployment packages
-      run: |
-        # Package the lambda function
-        cd lambda
-        zip -r ../lambda_function.zip lambda_counter_tf.py
-        cd ..
-        
-        # If you have other Lambda functions, package them too
-        # cd some_other_lambda_dir
-        # zip -r ../other_function.zip .
-        # cd ..
 
     - name: Terraform Format Check
       run: |
@@ -104,5 +95,4 @@ jobs:
     - name: Clean up
       if: always()
       run: |
-        rm -f lambda_function.zip
         rm -f terraform/tfplan

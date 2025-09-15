@@ -1,10 +1,10 @@
 from unittest.mock import patch
 from botocore.exceptions import ClientError
-import lambda_function
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src', 'lambda'))
+import lambda_counter_tf
 
 # Test for no origin received
 def test_no_origin_header():
@@ -14,7 +14,7 @@ def test_no_origin_header():
     }
 
     # Action: call function
-    result = lambda_function.lambda_handler(event, None)
+    result = lambda_counter_tf.lambda_handler(event, None)
 
     # Assertion: Check result
     assert result['statusCode'] == 403 
@@ -32,7 +32,7 @@ def test_origin_not_allowed():
     }
 
     # Action: Call function
-    result = lambda_function.lambda_handler(event, None)
+    result = lambda_counter_tf.lambda_handler(event, None)
 
     # Assertion: Check result
     assert result['statusCode'] == 403
@@ -49,7 +49,7 @@ def test_origin_options():
     }
 
     # Action: Call function
-    result = lambda_function.lambda_handler(event, None)
+    result = lambda_counter_tf.lambda_handler(event, None)
 
     # Assertion: Check result
     assert result['statusCode'] == 200
@@ -58,7 +58,7 @@ def test_origin_options():
 # Test for Valid origin with post request and successful DB update
 def test_origin_post_db_update():
     # Arrange: Event with valid origin, post and DB update
-    with patch('lambda_function.table') as mock_table:
+    with patch('lambda_counter_tf.table') as mock_table:
         # Mock the update_item response to include the expected return value
         mock_table.update_item.return_value = {
             'Attributes': {'visitor-count': 5},
@@ -70,7 +70,7 @@ def test_origin_post_db_update():
         }
 
         # Action: Call function
-        result = lambda_function.lambda_handler(event, None)
+        result = lambda_counter_tf.lambda_handler(event, None)
 
         # Assertion: Check results
         assert result['statusCode'] == 200
@@ -87,7 +87,7 @@ def test_origin_post_db_update():
 # Test for database error
 def test_ddb_error():
     # Arrange: Event with DDB error
-    with patch('lambda_function.table') as mock_table:
+    with patch('lambda_counter_tf.table') as mock_table:
         # Mock DDB error
         mock_table.update_item.side_effect = ClientError(
             error_response={
@@ -105,7 +105,7 @@ def test_ddb_error():
         }
 
         # Action: Call function
-        result = lambda_function.lambda_handler(event,None)
+        result = lambda_counter_tf.lambda_handler(event,None)
 
         # Assertion: Check results
         assert result['statusCode'] == 500
@@ -122,7 +122,7 @@ def test_unsupported_http_method():
     }
 
     # Action: Call function
-    result = lambda_function.lambda_handler(event,None)
+    result = lambda_counter_tf.lambda_handler(event,None)
 
     # Assertion: Check results
     assert result['statusCode'] == 405
