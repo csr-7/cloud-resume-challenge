@@ -1,13 +1,19 @@
-name: Deploy to AWS
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -26,20 +32,59 @@ jobs:
 
       - name: Run Python tests
         run: |
-          # Ensure directories are treated as packages
           touch src/lambda/__init__.py
           touch tests/__init__.py
           export PYTHONPATH="${PYTHONPATH}:${PWD}/src/lambda:${PWD}"
           python -m pytest tests/ -v
 
-      - name: Configure AWS credentials
+  terraform-plan:
+    needs: tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/<YOUR_ROLE_NAME>
+          role-session-name: github-actions
           aws-region: us-east-1
 
-      - name: Deploy infrastructure with Terraform
+      - name: Terraform plan (preview only)
+        run: |
+          cd terraform
+          terraform init -input=false
+          terraform validate
+          terraform plan -input=false
+
+  terraform-apply:
+    needs: tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::205930604749:role/GithubActionsRole
+          role-session-name: github-actions
+          aws-region: us-east-1
+
+      - name: Terraform apply (deploy)
         run: |
           cd terraform
           terraform init -input=false
