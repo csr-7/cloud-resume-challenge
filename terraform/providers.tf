@@ -11,5 +11,9 @@ terraform {
 
 provider "aws" {
     region = var.aws_region
-    profile = "crc"
+    #profile = "crc"
+    assume_role_with_web_identity {
+        role_arn = "arn:aws:iam::205930604749:role/GithubActionsRole"
+        session_name = "terraform"
+    }
 }

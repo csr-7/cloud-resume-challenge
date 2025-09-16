@@ -8,7 +8,7 @@ on:
       - '**.py'
       - '**.tf'
       - '**.tfvars'
-      - 'src/lambda/**'
+      - 'lambda/**'
       - 'tests/**'
   pull_request:
     branches:
@@ -29,7 +29,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.9'
 
     - name: Install Python dependencies
       run: |
@@ -41,48 +41,71 @@ jobs:
     - name: Run Python tests
       run: |
         # Add lambda directory to Python path and create __init__.py files
-        touch src/lambda/__init__.py
+        touch lambda/__init__.py
         touch tests/__init__.py
-        export PYTHONPATH="${PYTHONPATH}:${PWD}/src/lambda:${PWD}"
-        cd tests
-        python -m pytest . -v
-        cd ..
+        export PYTHONPATH="${PYTHONPATH}:${PWD}/lambda:${PWD}"
+        # Run pytest from root directory instead of tests directory
+        python -m pytest tests/ -v
+
+    - name: Debug OIDC token
+      run: |
+        echo "GitHub Repository: ${{ github.repository }}"
+        echo "GitHub Ref: ${{ github.ref }}"
+        echo "GitHub Actor: ${{ github.actor }}"
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
         role-session-name: GitHubActions
-        aws-region: us-west-1
+        aws-region: us-east-1  # adjust to your region
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ~1.5
 
+    - name: Create Lambda deployment packages
+      run: |
+        # Package the lambda function
+        cd lambda
+        zip -r ../lambda_function.zip lambda_counter_tf.py
+        cd ..
+        
+        # If you have other Lambda functions, package them too
+        # cd some_other_lambda_dir
+        # zip -r ../other_function.zip .
+        # cd ..
 
     - name: Terraform Format Check
       run: |
         cd terraform
-        terraform fmt -check
+        echo "Running terraform fmt check..."
+        terraform fmt -check -diff
         cd ..
 
     - name: Terraform Init
       run: |
         cd terraform
+        echo "Running terraform init..."
         terraform init
+        echo "Terraform init completed successfully"
         cd ..
 
     - name: Terraform Validate
       run: |
         cd terraform
+        echo "Running terraform validate..."
         terraform validate
+        echo "Terraform validate completed successfully"
         cd ..
 
     - name: Terraform Plan
       run: |
         cd terraform
-        terraform plan -out=tfplan
+        echo "Running terraform plan..."
+        terraform plan -var-file="variables.tfvars" -out=tfplan -detailed-exitcode
+        echo "Terraform plan completed successfully"
         cd ..
 
     - name: Terraform Apply
@@ -95,4 +118,5 @@ jobs:
     - name: Clean up
       if: always()
       run: |
+        rm -f lambda_function.zip
         rm -f terraform/tfplan
