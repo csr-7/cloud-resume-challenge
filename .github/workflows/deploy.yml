@@ -53,9 +53,9 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/<YOUR_ROLE_NAME>
+          role-to-assume: arn:aws:iam::205930604749:role/GithubActionsRole
           role-session-name: github-actions
-          aws-region: us-east-1
+          aws-region: us-west-1
 
       - name: Terraform plan (preview only)
         run: |
@@ -82,7 +82,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::205930604749:role/GithubActionsRole
           role-session-name: github-actions
-          aws-region: us-east-1
+          aws-region: us-west-1
 
       - name: Terraform apply (deploy)
         run: |
