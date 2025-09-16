@@ -41,7 +41,7 @@ jobs:
     - name: Run Python tests
       run: |
         # Add lambda directory to Python path and create __init__.py files
-        touch lambda/__init__.py
+        touch /src/lambda/__init__.py
         touch tests/__init__.py
         export PYTHONPATH="${PYTHONPATH}:${PWD}/lambda:${PWD}"
         # Run pytest from root directory instead of tests directory
