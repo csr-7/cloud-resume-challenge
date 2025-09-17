@@ -10,11 +10,12 @@ terraform {
     backend "s3" {
         bucket = "crc-tf-state-bucket-csr"  
         key    = "cloud-resume-challenge/terraform.tfstate"
-        region = "us-west-1" 
+        region = "us-west-1"
+        #profile = "crc"
   }
 }
   
 provider "aws" {
   region  = var.aws_region
-  # profile = "crc"
+  #profile = "crc"
 }
