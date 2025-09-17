@@ -11,7 +11,7 @@ terraform {
         bucket = "crc-tf-state-bucket-csr"  
         key    = "cloud-resume-challenge/terraform.tfstate"
         region = "us-west-1"
-        profile = "crc"
+        #profile = "crc"
   }
 }
   
