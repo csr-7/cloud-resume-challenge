@@ -42,6 +42,23 @@ resource "aws_iam_role" "github_actions_role" {
   })
 }
 
+# Allowing the GitHub Actions role to look up itself
+resource "aws_iam_role_policy" "github_actions_getrole" {
+  name = "GithubActionsRoleSelfLookup"
+  role = aws_iam_role.github_actions_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["iam:GetRole"]
+        Resource = aws_iam_role.github_actions_role.arn
+      }
+    ]
+  })
+}
+
 # Assigning the permissions to the role
 resource "aws_iam_role_policy" "crc_lambda_policy" {
   name = "${var.project_name}-lambda-policy"
